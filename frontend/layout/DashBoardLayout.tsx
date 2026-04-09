@@ -1,10 +1,10 @@
 import { Outlet } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "../components/ui/Sidebar";
-import { DashboardSidebar } from "../components/ui/dashboardSidebar";
+import { DashboardSidebar } from '../components/ui/DashboardSidebar'
 
 const DashboardLayout = () => {
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={true}>
       <div className="min-h-screen flex w-full bg-background text-foreground font-body">
         <DashboardSidebar />
         <div className="flex-1 flex flex-col min-w-0">

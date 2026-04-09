@@ -2,6 +2,7 @@ import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../../lib/utils";
+import { PanelLeft } from "lucide-react";
 
 // ------------------- CONTEXT -------------------
 type SidebarContextType = {
@@ -43,7 +44,7 @@ export const Sidebar: React.FC<{
   const { state } = useSidebar();
   return (
     <div
-      className={`fixed top-0 bottom-0 z-10 flex flex-col bg-gray-900 text-white transition-all ${
+      className={`top-0 bottom-0 z-10 flex flex-col bg-gray-900 text-white transition-all ${
         state === "collapsed" ? "w-12" : "w-64"
       } ${className ?? ""}`}
       data-side={side}
@@ -61,9 +62,9 @@ export const SidebarTrigger: React.FC<{ className?: string }> = ({ className }) 
   return (
     <button
       onClick={toggleSidebar}
-      className={cn("m-2 p-2 bg-blue-600 text-white rounded", className)}
+      className={cn("m-2 p-2 text-primary rounded", className)}
     >
-      Toggle
+      <PanelLeft/>
     </button>
   );
 };

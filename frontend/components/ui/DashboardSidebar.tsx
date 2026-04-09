@@ -23,20 +23,20 @@ const navItems = [
   { title: "Source Evidence", url: "/dashboard/evidence", icon: LinkIcon },
 ];
 
+
 export function DashboardSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
-  //const location = useLocation();
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="p-4 border-b border-sidebar-border">
+      <SidebarHeader className="p-4 border-b border-sidebar-border flex justify-between items-center">
         <a href="/" className="flex items-center gap-2.5">
           <Scale className="w-5 h-5 text-primary flex-shrink-0" />
           {!collapsed && <span className="font-display text-lg font-bold">LegalAI</span>}
         </a>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="text-white">
         <SidebarGroup>
           <SidebarGroupLabel>Case Analysis</SidebarGroupLabel>
           <SidebarGroupContent>
@@ -47,8 +47,11 @@ export function DashboardSidebar() {
                     <NavLink
                       to={item.url}
                       end
-                      className="hover:bg-sidebar-accent/50"
-                      activeClassName="bg-sidebar-accent text-primary font-medium"
+                      className={({ isActive }) =>
+                        `flex items-center gap-2 rounded-md p-2 hover:bg-sidebar-accent/50 ${
+                          isActive ? "bg-sidebar-accent text-primary font-medium" : ""
+                        }`
+                      }
                     >
                       <item.icon className="mr-2 h-4 w-4" />
                       {!collapsed && <span>{item.title}</span>}
