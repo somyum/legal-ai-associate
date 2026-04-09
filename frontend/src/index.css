@@ -1,69 +1,34 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
-
+/* Fonts */
 @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Source+Sans+3:wght@300;400;500;600;700&display=swap");
 
-@layer base {
-  :root {
-    --background: 220 20% 7%;
-    --foreground: 40 20% 92%;
-
-    --card: 220 18% 11%;
-    --card-foreground: 40 20% 92%;
-
-    --popover: 220 18% 11%;
-    --popover-foreground: 40 20% 92%;
-
-    --primary: 38 80% 55%;
-    --primary-foreground: 220 20% 7%;
-
-    --secondary: 220 15% 16%;
-    --secondary-foreground: 40 20% 92%;
-
-    --muted: 220 14% 14%;
-    --muted-foreground: 220 10% 50%;
-
-    --accent: 38 80% 55%;
-    --accent-foreground: 220 20% 7%;
-
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 40 20% 92%;
-
-    --border: 220 14% 18%;
-    --input: 220 14% 18%;
-    --ring: 38 80% 55%;
-
-    --radius: 0.75rem;
-
-    --sidebar-background: 220 18% 9%;
-    --sidebar-foreground: 40 20% 92%;
-    --sidebar-primary: 38 80% 55%;
-    --sidebar-primary-foreground: 220 20% 7%;
-    --sidebar-accent: 220 14% 14%;
-    --sidebar-accent-foreground: 40 20% 92%;
-    --sidebar-border: 220 14% 18%;
-    --sidebar-ring: 38 80% 55%;
-
-    --gold-glow: 38 90% 65%;
-    --surface-elevated: 220 16% 13%;
-
-    --font-display: "Playfair Display", serif;
-    --font-body: "Source Sans 3", sans-serif;
-  }
+/* Variables */
+:root {
+  --background: 220 20% 7%;
+  --foreground: 40 20% 92%;
+  --border: 220 14% 18%;
+  --primary: 38 80% 55%;
 }
 
-@layer base {
-  * {
-    border-width: 1px; /* default border width */
-    border-color: hsl(var(--border)); /* use your CSS variable */
-    border-style: solid; /* ensures solid border */
-  }
-
-  body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
-  }
+/* Base styles */
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
 }
+
+/* Optional fallback utilities (important fix) */
+.border-border {
+  border: 1px solid hsl(var(--border));
+}
+
+.bg-background {
+  background-color: hsl(var(--background));
+}
+
+.text-foreground {
+  color: hsl(var(--foreground));
+}
+

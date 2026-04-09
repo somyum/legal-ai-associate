@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { AlertTriangle, ArrowRightLeft, X, Check } from "lucide-react";
+import { AlertTriangle, ArrowRightLeft } from "lucide-react";
 
 const conflicts = [
   {
