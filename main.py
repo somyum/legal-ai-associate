@@ -1,12 +1,14 @@
 import os
-from dotenv import load_dotenv
 from typing import TypedDict, List, Dict
+
+from dotenv import load_dotenv
 from langgraph.graph import StateGraph, END
-from langchain_openai import ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 
-# Load environment variables (like your OpenAI key)
+# Load environment variables
 load_dotenv()
+
 
 # 1. DEFINE THE STATE
 class LegalState(TypedDict):
@@ -16,56 +18,82 @@ class LegalState(TypedDict):
     inconsistencies: List[str]
     deposition_questions: List[str]
 
-# Initialize LLM (Requires OPENAI_API_KEY in .env)
-llm = ChatOpenAI(model="gpt-4o", temperature=0)
 
-# 2. DEFINE THE AGENT NODES
+# 2. INITIALIZE GEMINI
+llm = ChatGoogleGenerativeAI(
+    model="models/gemini-2.5-flash",
+    temperature=0,
+    google_api_key=os.getenv("GOOGLE_API_KEY")
+)
+
+
+# 3. DEFINE THE AGENT NODES
 def parse_and_extract(state: LegalState):
-    print("--- 📄 EXTRACTING ENTITIES (Mock Docling/GliNER) ---")
+    print("--- EXTRACTING ENTITIES (Mock) ---")
     extracted = [
-        {"type": "Contract", "person": "Rahul Sharma", "deadline": "October 1st", "penalty": "\$50,000"},
-        {"type": "Email", "person": "Rahul Sharma", "expected_delivery": "November 15th", "intent": "Concealment"}
+        {
+            "type": "Contract",
+            "person": "Rahul Sharma",
+            "deadline": "October 1st",
+            "penalty": "\$50,000"
+        },
+        {
+            "type": "Email",
+            "person": "Rahul Sharma",
+            "expected_delivery": "November 15th",
+            "intent": "Concealment"
+        }
     ]
     return {"extracted_entities": extracted}
 
+
 def populate_graph(state: LegalState):
-    print("--- 🕸️ POPULATING NEO4J GRAPH (Mock) ---")
+    print("--- POPULATING GRAPH (Mock) ---")
     truths = [
-        "Rahul Sharma signed Contract requiring Oct 1st delivery.",
-        "Rahul Sharma authored Email stating Nov 15th delivery."
+        "Rahul Sharma signed a contract requiring delivery by October 1st.",
+        "Rahul Sharma authored an email stating delivery would happen on November 15th."
     ]
     return {"graph_truths": truths}
 
+
 def recursive_auditor(state: LegalState):
-    print("--- 🔍 AUDITING FOR INCONSISTENCIES ---")
+    print("--- AUDITING FOR INCONSISTENCIES ---")
     truths = state["graph_truths"]
-    
+
     prompt = ChatPromptTemplate.from_messages([
-        ("system", "You are an expert legal auditor. Compare the following facts and identify any material inconsistencies in 1 short sentence."),
-        ("user", "Facts: {facts}")
+        (
+            "system",
+            "You are an expert legal auditor. Compare the following facts and identify any material inconsistency in one short sentence."
+        ),
+        ("user", "Facts:\n{facts}")
     ])
-    
+
     chain = prompt | llm
     response = chain.invoke({"facts": "\n".join(truths)})
-    print(f"Found: {response.content}\n")
-    
+
+    print("Found inconsistency:", response.content)
     return {"inconsistencies": [response.content]}
 
+
 def generate_deposition_strategy(state: LegalState):
-    print("--- ⚖️ DRAFTING DEPOSITION QUESTIONS ---")
-    inconsistencies = state["inconsistencies"]
-    
+    print("--- GENERATING DEPOSITION QUESTION ---")
+    inconsistency = state["inconsistencies"][0]
+
     prompt = ChatPromptTemplate.from_messages([
-        ("system", "You are a litigator. Based on this inconsistency, draft a pointed deposition question that traps the witness."),
+        (
+            "system",
+            "You are a litigator. Based on this inconsistency, draft one sharp deposition question."
+        ),
         ("user", "Inconsistency: {inconsistency}")
     ])
-    
+
     chain = prompt | llm
-    response = chain.invoke({"inconsistency": inconsistencies[0]})
-    
+    response = chain.invoke({"inconsistency": inconsistency})
+
     return {"deposition_questions": [response.content]}
 
-# 3. BUILD THE GRAPH (STATE MACHINE)
+
+# 4. BUILD THE LANGGRAPH WORKFLOW
 workflow = StateGraph(LegalState)
 
 workflow.add_node("extract", parse_and_extract)
@@ -73,34 +101,52 @@ workflow.add_node("graph_db", populate_graph)
 workflow.add_node("auditor", recursive_auditor)
 workflow.add_node("strategy", generate_deposition_strategy)
 
+workflow.set_entry_point("extract")
 workflow.add_edge("extract", "graph_db")
 workflow.add_edge("graph_db", "auditor")
 
+
 def check_inconsistencies(state: LegalState):
-    if len(state["inconsistencies"]) > 0:
+    if state["inconsistencies"]:
         return "strategy"
     return END
+
 
 workflow.add_conditional_edges("auditor", check_inconsistencies)
 workflow.add_edge("strategy", END)
 
 app = workflow.compile()
 
-# 4. RUN THE PROTOTYPE
+
+# 5. RUN THE MVP
 if __name__ == "__main__":
-    if not os.getenv("OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY") == "your_actual_api_key_goes_here":
-        print("⚠️ ERROR: Please add your OpenAI API key to the .env file first!")
+    if not os.getenv("GOOGLE_API_KEY"):
+        print("ERROR: GOOGLE_API_KEY not found in .env")
     else:
-        print("\n🚀 STARTING LEGAL AI ITERATIVE DISCOVERY...\n")
+        print("\nSTARTING LEGAL AI ASSOCIATE MVP...\n")
+
         initial_state = {
-            "raw_documents": [], "extracted_entities": [], 
-            "graph_truths": [], "inconsistencies": [], "deposition_questions": []
+            "raw_documents": [
+                {
+                    "source": "contract.pdf",
+                    "text": "The penalty for missing the delivery date of October 1st is \$50,000. Signed by Rahul Sharma."
+                },
+                {
+                    "source": "email.txt",
+                    "text": "Hi team, Rahul here. We won't be able to deliver until November 15th, but don't tell the client yet."
+                }
+            ],
+            "extracted_entities": [],
+            "graph_truths": [],
+            "inconsistencies": [],
+            "deposition_questions": []
         }
 
-        for output in app.stream(initial_state):
-            pass 
+        final_state = app.invoke(initial_state)
 
-        final_state = app.get_state(app).values
-        print("\n=== FINAL DEPOSITION QUESTION ===")
+        print("\n=== FINAL OUTPUT ===")
+        print("Inconsistency:")
+        print(final_state["inconsistencies"][0])
+        print("\nDeposition Question:")
         print(final_state["deposition_questions"][0])
-        print("=================================\n")
+        print("====================\n")
