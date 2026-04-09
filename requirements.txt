@@ -1,0 +1,7 @@
+langgraph>=0.0.26
+langchain>=0.1.12
+langchain-openai>=0.0.8
+neo4j>=5.18.0
+docling>=1.0.0
+gliner>=0.1.5
+python-dotenv>=1.0.1
